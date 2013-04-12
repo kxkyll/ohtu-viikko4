@@ -20,15 +20,18 @@ public class Tester {
         
         System.out.println( driver.getPageSource() );
         element = driver.findElement(By.name("username"));
-        element.sendKeys("katikati");
+        element.sendKeys("itakitak");
         element = driver.findElement(By.name("password"));
-        element.sendKeys("1itakitak");
+        element.sendKeys("2itakitak");
         element = driver.findElement(By.name("passwordConfirmation"));
-        element.sendKeys("1itakitak");
+        element.sendKeys("2itakitak");
         element = driver.findElement(By.name("add"));
         element.submit();
         
         System.out.println("===========================================");
+        element = driver.findElement(By.partialLinkText("continue"));   
+        element.click();
+        
         System.out.println( driver.getPageSource() );
         
     }
