@@ -22,7 +22,7 @@ public class Tester {
         element = driver.findElement(By.name("username"));
         element.sendKeys("pekka");
         element = driver.findElement(By.name("password"));
-        element.sendKeys("akkep");
+        element.sendKeys("p");
         element = driver.findElement(By.name("login"));
         element.submit();
         
