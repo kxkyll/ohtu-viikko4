@@ -20,9 +20,9 @@ public class Tester {
         
         System.out.println( driver.getPageSource() );
         element = driver.findElement(By.name("username"));
-        element.sendKeys("pekka");
+        element.sendKeys("kati");
         element = driver.findElement(By.name("password"));
-        element.sendKeys("p");
+        element.sendKeys("akkep");
         element = driver.findElement(By.name("login"));
         element.submit();
         
