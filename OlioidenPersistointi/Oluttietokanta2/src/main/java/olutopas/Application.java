@@ -41,12 +41,18 @@ public class Application {
             } else if (command.equals("4")) {
                 listBreweries();
             } else if (command.equals("5")) {
-                deleteBeer();            
+                deleteBeer();
             } else if (command.equals("6")) {
-                addPub();            
+                addPub();
             } else if (command.equals("7")) {
                 addBeerToPub();
-            }  else {
+            } else if (command.equals("8")) {
+                listPubs();
+            } else if (command.equals("9")) {
+                removeBeersFromPub();
+            } else if (command.equals("10")) {
+                showBeersInPub();
+            } else {
                 System.out.println("unknown command");
             }
 
@@ -64,8 +70,10 @@ public class Application {
         System.out.println("3   add beer");
         System.out.println("4   list breweries");
         System.out.println("5   delete beer");
-        System.out.println("6   add pub");               
-        System.out.println("7   add beer to pub");                      
+        System.out.println("6   add pub");
+        System.out.println("7   add beer to pub");
+        System.out.println("8   list pubs");
+        System.out.println("9   remove beers from pub");
         System.out.println("0   quit");
         System.out.println("");
     }
@@ -219,4 +227,21 @@ public class Application {
         server.save(pub);
     }
 
+    private void showBeersInPub() {
+        System.out.print("pub: ");
+        String name = scanner.nextLine();
+        Pub pub = server.find(Pub.class).where().like("name", name).findUnique();
+        for (Beer beer : pub.getBeers()) {
+            System.out.println(beer);
+        }
+
+    }
+
+    private void listPubs() {
+        
+    }
+
+    private void removeBeersFromPub() {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 }
