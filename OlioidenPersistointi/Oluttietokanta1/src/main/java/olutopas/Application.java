@@ -6,6 +6,7 @@ import java.util.Scanner;
 import javax.persistence.OptimisticLockException;
 import olutopas.model.Beer;
 import olutopas.model.Brewery;
+import olutopas.model.User;
 
 public class Application {
 
@@ -19,6 +20,11 @@ public class Application {
     public void run(boolean newDatabase) {
         if (newDatabase) {
             seedDatabase();
+        }
+        if (!login()) {
+            System.out.println("Unauthorized user");
+            System.out.println("Exiting...");
+            return;
         }
 
         System.out.println("Welcome!");
@@ -46,6 +52,8 @@ public class Application {
                 addBrewery();
             } else if (command.equals("8")) {
                 deleteBrewery();
+            } else if (command.equals("9")) {
+                listUsers();
             } else {
                 System.out.println("unknown command");
             }
@@ -67,6 +75,7 @@ public class Application {
         System.out.println("6   list beers");
         System.out.println("7   add brewery");
         System.out.println("8   delete brewery");
+        System.out.println("9   list users");
         System.out.println("0   quit");
         System.out.println("");
     }
@@ -203,5 +212,54 @@ public class Application {
 
         server.delete(breweryToDelete);
         System.out.println("deleted: " + breweryToDelete);
+    }
+
+    private boolean login() {
+        String userName = askUsername();
+
+        if (userName.equals("?")) {
+            createNewUser();
+            userName = askUsername();
+        }
+
+        User userToLogin = server.find(User.class).where().like("name", userName).findUnique();
+
+        if (userToLogin == null) {
+            System.out.println(userName + " not found");
+            return false;
+        }
+
+        return true;
+
+    }
+
+    private String createNewUser() {
+        System.out.println("Register a new user");
+        System.out.println("give username:");
+        String name = scanner.nextLine();
+        User exists = server.find(User.class).where().like("name", name).findUnique();
+        if (exists != null) {
+            System.out.println(name + " exists already");
+            return "";
+        }
+        server.save(new User(name));
+        System.out.println("Registration of user " + name + " was successfull");
+        System.out.println("=====================");
+        return name;
+
+    }
+
+    private String askUsername() {
+        System.out.println("Login (give ? to register a new user)");
+        System.out.print("username: ");
+        String command = scanner.nextLine();
+        return command;
+    }
+
+    private void listUsers() {
+        List<User> users = server.find(User.class).orderBy("name").findList();
+        for (User user : users) {
+            System.out.println(user);
+        }
     }
 }
