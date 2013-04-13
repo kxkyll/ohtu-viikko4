@@ -6,12 +6,14 @@ import java.util.Scanner;
 import javax.persistence.OptimisticLockException;
 import olutopas.model.Beer;
 import olutopas.model.Brewery;
+import olutopas.model.Rating;
 import olutopas.model.User;
 
 public class Application {
 
     private EbeanServer server;
     private Scanner scanner = new Scanner(System.in);
+    private User userLoggedIn;
 
     public Application(EbeanServer server) {
         this.server = server;
@@ -21,13 +23,15 @@ public class Application {
         if (newDatabase) {
             seedDatabase();
         }
-        if (!login()) {
+        userLoggedIn = login();
+        if (userLoggedIn == null) {
             System.out.println("Unauthorized user");
             System.out.println("Exiting...");
             return;
         }
 
-        System.out.println("Welcome!");
+        System.out.println("");
+        System.out.println("Welcome " + userLoggedIn.getName());
 
         while (true) {
             menu();
@@ -54,6 +58,8 @@ public class Application {
                 deleteBrewery();
             } else if (command.equals("9")) {
                 listUsers();
+            } else if (command.equals("t")) {
+                listMyRatings();
             } else {
                 System.out.println("unknown command");
             }
@@ -68,7 +74,7 @@ public class Application {
     private void menu() {
         System.out.println("");
         System.out.println("1   find brewery");
-        System.out.println("2   find beer");
+        System.out.println("2   find/rate beer");
         System.out.println("3   add beer");
         System.out.println("4   list breweries");
         System.out.println("5   delete beer");
@@ -76,6 +82,7 @@ public class Application {
         System.out.println("7   add brewery");
         System.out.println("8   delete brewery");
         System.out.println("9   list users");
+        System.out.println("t   show my ratings");
         System.out.println("0   quit");
         System.out.println("");
     }
@@ -85,13 +92,22 @@ public class Application {
         Brewery brewery = new Brewery("Schlenkerla");
         brewery.addBeer(new Beer("Urbock"));
         brewery.addBeer(new Beer("Lager"));
+
         // tallettaa myös luodut oluet, sillä Brewery:n OneToMany-mappingiin on määritelty
         // CascadeType.all
         server.save(brewery);
 
+        Brewery brewery2 = new Brewery("Hartwall");
+        brewery2.addBeer(new Beer("Bisse1"));
+        brewery2.addBeer(new Beer("Bisse2"));
+        brewery2.addBeer(new Beer("Lapinkulta"));
+
+        server.save(brewery2);
+
         // luodaan olut ilman panimon asettamista
         Beer b = new Beer("Märzen");
         server.save(b);
+
 
         // jotta saamme panimon asetettua, tulee olot lukea uudelleen kannasta
         b = server.find(Beer.class, b.getId());
@@ -113,6 +129,8 @@ public class Application {
         }
 
         System.out.println("found: " + foundBeer);
+        getDoneRatings(foundBeer.getName());
+        askRating(foundBeer);
     }
 
     private void findBrewery() {
@@ -214,22 +232,23 @@ public class Application {
         System.out.println("deleted: " + breweryToDelete);
     }
 
-    private boolean login() {
-        String userName = askUsername();
+    private User login() {
 
-        if (userName.equals("?")) {
+        String userName = askUsername();
+        while (userName.equals("?")) {
             createNewUser();
             userName = askUsername();
         }
-
+               
+        
         User userToLogin = server.find(User.class).where().like("name", userName).findUnique();
 
         if (userToLogin == null) {
             System.out.println(userName + " not found");
-            return false;
+            return null;
         }
 
-        return true;
+        return userToLogin;
 
     }
 
@@ -261,5 +280,40 @@ public class Application {
         for (User user : users) {
             System.out.println(user);
         }
+    }
+
+    private void askRating(Beer foundBeer) throws NumberFormatException, OptimisticLockException {
+        System.out.println("give rating (leave emtpy if not): ");
+        String givenRate = scanner.nextLine();
+        if (!givenRate.isEmpty()){
+            int rate = Integer.parseInt(givenRate);
+            Rating rating = new Rating(foundBeer, userLoggedIn, rate);
+            server.save(rating);
+        }
+    }
+
+    private void listMyRatings() {
+        String who = userLoggedIn.getName();
+        
+        List<Rating> ratings;
+        ratings = server.find(Rating.class).where().eq("user.name",who).findList();
+        for (Rating rating : ratings) {
+            System.out.println(rating);
+        }
+    }
+
+    private void getDoneRatings(String name) {
+        List<Rating> ratings = server.find(Rating.class).where().eq("beer.name",name).findList();
+        double keskiarvo = 0;
+        for (Rating rating : ratings) {
+            System.out.println(rating);
+            keskiarvo += rating.getValue();
+        }
+        if (!ratings.isEmpty()){
+            keskiarvo = keskiarvo / ratings.size();
+            System.out.println("number of ratings: " +ratings.size() +" average " +keskiarvo);
+            return;
+        }
+        System.out.println("not available currently!");
     }
 }
