@@ -1,13 +1,13 @@
 package olutopas;
 
 import com.avaje.ebean.EbeanServer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import javax.persistence.OptimisticLockException;
 import olutopas.model.Beer;
 import olutopas.model.Brewery;
 import olutopas.model.Pub;
+import olutopas.model.Rating;
 import olutopas.model.User;
 
 public class Application {
@@ -68,6 +68,8 @@ public class Application {
                 addBrewery();
             } else if (command.equals("13")) {
                 deleteBrewery();
+            } else if (command.equals("14")) {
+                listMyRatings();
             } else if (command.equals("l")) {
                 listUsers();
             } else {
@@ -84,7 +86,7 @@ public class Application {
     private void menu() {
         System.out.println("");
         System.out.println("1   find brewery");
-        System.out.println("2   find beer");
+        System.out.println("2   find/rate beer");
         System.out.println("3   add beer");
         System.out.println("4   list breweries");
         System.out.println("5   delete beer");
@@ -96,6 +98,7 @@ public class Application {
         System.out.println("11  list beers");
         System.out.println("12  add brewery");
         System.out.println("13  delete brewery");
+        System.out.println("14  show my ratings");
         System.out.println("l   list users");
         System.out.println("0   quit");
         System.out.println("");
@@ -126,6 +129,20 @@ public class Application {
         server.save(new User("mluukkai"));
     }
 
+//     private void findBeer() {
+//        System.out.print("beer to find: ");
+//        String n = scanner.nextLine();
+//        Beer foundBeer = server.find(Beer.class).where().like("name", n).findUnique();
+//
+//        if (foundBeer == null) {
+//            System.out.println(n + " not found");
+//            return;
+//        }
+//
+//        System.out.println("found: " + foundBeer);
+//        getDoneRatings(foundBeer.getName());
+//        askRating(foundBeer);
+//    }
     private void findBeer() {
         System.out.print("beer to find: ");
         String n = scanner.nextLine();
@@ -140,7 +157,7 @@ public class Application {
 
 
         if (foundBeer.getPubs() == null || foundBeer.getPubs().isEmpty()) {
-            System.out.println("  not available currently!");
+            System.out.println("  not available currently in any pub!");
 
         } else {
             System.out.println("  available now in:");
@@ -148,6 +165,8 @@ public class Application {
                 System.out.println("   " + pub);
             }
         }
+        getDoneRatings(foundBeer.getName());
+        askRating(foundBeer);
     }
 
     private void findBrewery() {
@@ -222,7 +241,7 @@ public class Application {
             return;
         }
 
-        
+
         server.delete(beerToDelete);
         System.out.println("deleted: " + beerToDelete);
 
@@ -389,5 +408,40 @@ public class Application {
 
         server.delete(breweryToDelete);
         System.out.println("deleted: " + breweryToDelete);
+    }
+
+    private void askRating(Beer foundBeer) throws NumberFormatException, OptimisticLockException {
+        System.out.println("give rating (leave emtpy if not): ");
+        String givenRate = scanner.nextLine();
+        if (!givenRate.isEmpty()) {
+            int rate = Integer.parseInt(givenRate);
+            Rating rating = new Rating(foundBeer, userLoggedIn, rate);
+            server.save(rating);
+        }
+    }
+
+    private void listMyRatings() {
+        String who = userLoggedIn.getName();
+
+        List<Rating> ratings;
+        ratings = server.find(Rating.class).where().eq("user.name", who).findList();
+        for (Rating rating : ratings) {
+            System.out.println(rating);
+        }
+    }
+
+    private void getDoneRatings(String name) {
+        List<Rating> ratings = server.find(Rating.class).where().eq("beer.name", name).findList();
+        double keskiarvo = 0;
+        for (Rating rating : ratings) {
+            System.out.println(rating);
+            keskiarvo += rating.getValue();
+        }
+        if (!ratings.isEmpty()) {
+            keskiarvo = keskiarvo / ratings.size();
+            System.out.println("number of ratings: " + ratings.size() + " average " + keskiarvo);
+            return;
+        }
+        System.out.println("no ratings");
     }
 }

@@ -8,6 +8,8 @@ drop table brewery;
 
 drop table pub;
 
+drop table rating;
+
 drop table user;
 
 PRAGMA foreign_keys = ON;
