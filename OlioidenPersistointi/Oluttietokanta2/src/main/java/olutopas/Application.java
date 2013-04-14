@@ -61,6 +61,8 @@ public class Application {
                 listPubs();
             } else if (command.equals("10")) {
                 removeBeerFromPub();
+            } else if (command.equals("l")) {
+                listUsers();
             } else {
                 System.out.println("unknown command");
             }
@@ -84,6 +86,7 @@ public class Application {
         System.out.println("8   show beers in pub");
         System.out.println("9   list pubs");
         System.out.println("10  remove beer from pub");
+        System.out.println("l   list users");
         System.out.println("0   quit");
         System.out.println("");
     }
@@ -332,5 +335,12 @@ public class Application {
         System.out.println("=====================");
         return name;
 
+    }
+    
+      private void listUsers() {
+        List<User> users = server.find(User.class).orderBy("name").findList();
+        for (User user : users) {
+            System.out.println(user);
+        }
     }
 }

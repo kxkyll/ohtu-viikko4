@@ -17,10 +17,9 @@ public class User {
     public User(String name) {
         this.name = name;
     }
-    
     @Id
     private Integer id;
-    
+
     public String getName() {
         return name;
     }
@@ -36,5 +35,9 @@ public class User {
     public void setId(Integer id) {
         this.id = id;
     }
-    
+
+    @Override
+    public String toString() {
+        return "User: " + name;
+    }
 }
