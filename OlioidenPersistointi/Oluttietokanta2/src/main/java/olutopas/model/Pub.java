@@ -57,7 +57,9 @@ public class Pub {
     @Override
     public String toString() {
         return name +", beers available "+beers.size();
-    }           
+    }   
+    
+    
 
     public void removeBeer(Beer beer) {
         beers.remove(beer);        
@@ -75,5 +77,5 @@ public class Pub {
         hash = 29 * hash + (this.id != null ? this.id.hashCode() : 0);
         return hash;
     }
-                 
+                    
 }
