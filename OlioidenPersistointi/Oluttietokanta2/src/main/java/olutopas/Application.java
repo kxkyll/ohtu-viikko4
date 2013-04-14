@@ -13,6 +13,7 @@ public class Application {
 
     private EbeanServer server;
     private Scanner scanner = new Scanner(System.in);
+    private User userLoggedIn;
 
     public Application(EbeanServer server) {
         this.server = server;
@@ -22,8 +23,16 @@ public class Application {
         if (newDatabase) {
             seedDatabase();
         }
+        userLoggedIn = login();
+        if (userLoggedIn == null) {
+            System.out.println("Unauthorized user");
+            System.out.println("Exiting...");
+            return;
+        }
 
-        System.out.println("\nWelcome to Ratebeer ");
+        System.out.println("");
+
+        System.out.println("\nWelcome to Ratebeer " + userLoggedIn.getName());
 
         while (true) {
             menu();
@@ -232,12 +241,12 @@ public class Application {
         System.out.print("pub: ");
         String name = scanner.nextLine();
         Pub pub = server.find(Pub.class).where().like("name", name).findUnique();
-        if (pub == null){
-            System.out.println("No such pub " +name);
+        if (pub == null) {
+            System.out.println("No such pub " + name);
             return;
         }
-        if (pub.getBeers().isEmpty()){
-            System.out.println("No beers in pub "+name);
+        if (pub.getBeers().isEmpty()) {
+            System.out.println("No beers in pub " + name);
             return;
         }
         for (Beer beer : pub.getBeers()) {
@@ -271,14 +280,57 @@ public class Application {
             System.out.println("does not exist");
             return;
         }
-        
-        if (pub.getBeers().contains(beer)){
+
+        if (pub.getBeers().contains(beer)) {
             pub.removeBeer(beer);
         }
 
-        
+
         server.save(pub);
-        
-        System.out.println("Beer " +beer.getName() +" removed from pub " +pub.getName());
+
+        System.out.println("Beer " + beer.getName() + " removed from pub " + pub.getName());
+    }
+
+    private User login() {
+
+        String userName = askUsername();
+        while (userName.equals("?")) {
+            createNewUser();
+            userName = askUsername();
+        }
+
+
+        User userToLogin = server.find(User.class).where().like("name", userName).findUnique();
+
+        if (userToLogin == null) {
+            System.out.println(userName + " not found");
+            return null;
+        }
+
+        return userToLogin;
+
+    }
+
+    private String askUsername() {
+        System.out.println("Login (give ? to register a new user)");
+        System.out.print("username: ");
+        String command = scanner.nextLine();
+        return command;
+    }
+
+    private String createNewUser() {
+        System.out.println("Register a new user");
+        System.out.println("give username:");
+        String name = scanner.nextLine();
+        User exists = server.find(User.class).where().like("name", name).findUnique();
+        if (exists != null) {
+            System.out.println(name + " exists already");
+            return "";
+        }
+        server.save(new User(name));
+        System.out.println("Registration of user " + name + " was successfull");
+        System.out.println("=====================");
+        return name;
+
     }
 }
