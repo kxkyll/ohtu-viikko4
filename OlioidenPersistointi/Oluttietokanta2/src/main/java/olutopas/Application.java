@@ -1,6 +1,7 @@
 package olutopas;
 
 import com.avaje.ebean.EbeanServer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import javax.persistence.OptimisticLockException;
@@ -63,6 +64,10 @@ public class Application {
                 removeBeerFromPub();
             } else if (command.equals("11")) {
                 listBeers();
+            } else if (command.equals("12")) {
+                addBrewery();
+            } else if (command.equals("13")) {
+                deleteBrewery();
             } else if (command.equals("l")) {
                 listUsers();
             } else {
@@ -89,6 +94,8 @@ public class Application {
         System.out.println("9   list pubs");
         System.out.println("10  remove beer from pub");
         System.out.println("11  list beers");
+        System.out.println("12  add brewery");
+        System.out.println("13  delete brewery");
         System.out.println("l   list users");
         System.out.println("0   quit");
         System.out.println("");
@@ -215,6 +222,7 @@ public class Application {
             return;
         }
 
+        
         server.delete(beerToDelete);
         System.out.println("deleted: " + beerToDelete);
 
@@ -352,5 +360,34 @@ public class Application {
         for (Beer beer : beers) {
             System.out.println(beer);
         }
+    }
+
+    private void addBrewery() {
+        System.out.print("brewery to add: ");
+
+        String name = scanner.nextLine();
+
+        Brewery exists = server.find(Brewery.class).where().like("name", name).findUnique();
+        if (exists != null) {
+            System.out.println(name + " exists already");
+            return;
+        }
+
+        server.save(new Brewery(name));
+        System.out.println("Brewery " + name + " added");
+    }
+
+    private void deleteBrewery() {
+        System.out.print("brewery to delete: ");
+        String n = scanner.nextLine();
+        Brewery breweryToDelete = server.find(Brewery.class).where().like("name", n).findUnique();
+
+        if (breweryToDelete == null) {
+            System.out.println(n + " not found");
+            return;
+        }
+
+        server.delete(breweryToDelete);
+        System.out.println("deleted: " + breweryToDelete);
     }
 }
